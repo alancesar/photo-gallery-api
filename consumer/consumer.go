@@ -83,8 +83,6 @@ func getMergeFn(et eventType) (mergeFn, error) {
 }
 
 func mergeMetadata(p *photo.Photo, message message) {
-	dimension, _ := message.Exif.GetDimension()
-	p.Metadata.Dimension = &dimension
 	p.Exif = &message.Exif
 }
 

@@ -1,21 +1,5 @@
 package photo
 
-import (
-	"errors"
-	"regexp"
-	"strconv"
-)
-
-var (
-	sizeRegex            = regexp.MustCompile(`(\d{1,8})`)
-	errSizeTagNotPresent = errors.New("size tag not present")
-)
-
-const (
-	imageWidthKey  = "Image Width"
-	imageHeightKey = "Image Height"
-)
-
 type Type string
 
 const (
@@ -54,38 +38,11 @@ type Thumbs struct {
 	Metadata `bson:",inline"`
 }
 
-type Exif map[string]string
+type Exif map[string]map[string]string
 
 type Dimension struct {
 	Width  int
 	Height int
-}
-
-func (e Exif) GetDimension() (Dimension, error) {
-	stringWidth, ok := e[imageWidthKey]
-	if !ok {
-		return Dimension{}, errSizeTagNotPresent
-	}
-
-	stringHeight, ok := e[imageHeightKey]
-	if !ok {
-		return Dimension{}, errSizeTagNotPresent
-	}
-
-	width, err := strconv.Atoi(sizeRegex.FindString(stringWidth))
-	if err != nil {
-		return Dimension{}, err
-	}
-
-	height, err := strconv.Atoi(sizeRegex.FindString(stringHeight))
-	if err != nil {
-		return Dimension{}, err
-	}
-
-	return Dimension{
-		Width:  width,
-		Height: height,
-	}, nil
 }
 
 type Photo struct {

@@ -8,7 +8,12 @@ import (
 	"github.com/alancesar/photo-gallery/api/pubsub"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
+	"image"
+	_ "image/gif"
+	_ "image/jpeg"
+	_ "image/png"
 	"io"
+	"mime/multipart"
 	"net/http"
 	"path/filepath"
 )
@@ -54,6 +59,14 @@ func UploadFileHandler(storage Storage, database Database, publisher Publisher) 
 
 		filename := fmt.Sprintf("%s%s", uuid.New().String(), getExtension(header.Filename))
 		metadata, err := storage.Put(ctx.Request.Context(), filename, file, header.Size)
+		if err != nil {
+			ctx.JSON(http.StatusInternalServerError, gin.H{
+				"message": "unexpected error. please try again later",
+			})
+			return
+		}
+
+		metadata.Dimension, err = getDimension(file)
 		if err != nil {
 			ctx.JSON(http.StatusInternalServerError, gin.H{
 				"message": "unexpected error. please try again later",
@@ -118,6 +131,23 @@ func GetPhotoHandler(database Database) gin.HandlerFunc {
 			ctx.JSON(http.StatusOK, p)
 		}
 	}
+}
+
+func getDimension(file multipart.File) (*photo.Dimension, error) {
+	_, err := file.Seek(0, 0)
+	if err != nil {
+		return nil, err
+	}
+
+	config, _, err := image.DecodeConfig(file)
+	if err != nil {
+		return nil, err
+	}
+
+	return &photo.Dimension{
+		Width:  config.Width,
+		Height: config.Height,
+	}, nil
 }
 
 func getExtension(filename string) string {
