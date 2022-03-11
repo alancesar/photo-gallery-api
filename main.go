@@ -29,7 +29,7 @@ const (
 	projectIDKey           = "PROJECT_ID"
 	storageEmulatorHostKey = "STORAGE_EMULATOR_HOST"
 	photosTopicID          = "photos"
-	thumbsSubscriptionID   = "api_thumbs"
+	apiSubscriptionID      = "api"
 )
 
 func main() {
@@ -52,7 +52,7 @@ func main() {
 	}
 
 	photosTopic := pubsubClient.Topic(photosTopicID)
-	thumbsSubscription := pubsubClient.Subscription(thumbsSubscriptionID)
+	thumbsSubscription := pubsubClient.Subscription(apiSubscriptionID)
 	bucketHandle := storageClient.Bucket(fmt.Sprintf("%s.appspot.com", projectID))
 
 	db := database.NewFirestoreDatabase(firestoreClient)
