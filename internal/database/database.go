@@ -10,7 +10,8 @@ import (
 
 const (
 	photosCollectionName = "photos"
-	thumbsCollectionName = "thumbs"
+	metadataFieldName    = "metadata"
+	thumbsFieldName      = "thumbs"
 )
 
 type Database struct {
@@ -77,7 +78,7 @@ func (d FirestoreDatabase) Create(ctx context.Context, photo *photo.Photo) error
 func (d FirestoreDatabase) UpdateMetadata(ctx context.Context, id string, metadata metadata.Metadata) error {
 	_, err := d.client.Collection(photosCollectionName).Doc(id).Update(ctx, []firestore.Update{
 		{
-			Path:  "metadata",
+			Path:  metadataFieldName,
 			Value: metadata,
 		},
 	})
@@ -86,11 +87,15 @@ func (d FirestoreDatabase) UpdateMetadata(ctx context.Context, id string, metada
 }
 
 func (d FirestoreDatabase) InsertThumbnails(ctx context.Context, id string, thumbs []photo.Thumbs) error {
-	_, _, err := d.client.
+	_, err := d.client.
 		Collection(photosCollectionName).
 		Doc(id).
-		Collection(thumbsCollectionName).
-		Add(ctx, thumbs)
+		Update(ctx, []firestore.Update{
+			{
+				Path:  thumbsFieldName,
+				Value: thumbs,
+			},
+		})
 
 	return err
 }

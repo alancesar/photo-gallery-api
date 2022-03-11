@@ -11,18 +11,18 @@ import (
 
 type (
 	Bucket struct {
-		bucketHandle *storage.BucketHandle
+		handle *storage.BucketHandle
 	}
 )
 
-func New(bucketHandle *storage.BucketHandle) *Bucket {
+func New(handle *storage.BucketHandle) *Bucket {
 	return &Bucket{
-		bucketHandle: bucketHandle,
+		handle: handle,
 	}
 }
 
 func (s Bucket) Put(ctx context.Context, reader io.ReadSeeker, name string) (metadata.Metadata, error) {
-	object := s.bucketHandle.Object(name)
+	object := s.handle.Object(name)
 	writer := object.NewWriter(ctx)
 	if _, err := io.Copy(writer, reader); err != nil {
 		return metadata.Metadata{}, err

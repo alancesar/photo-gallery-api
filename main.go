@@ -10,6 +10,7 @@ import (
 	"github.com/alancesar/photo-gallery/api/internal/bucket"
 	"github.com/alancesar/photo-gallery/api/internal/database"
 	"github.com/alancesar/photo-gallery/api/internal/listener"
+	"github.com/alancesar/photo-gallery/api/internal/publisher"
 	"github.com/alancesar/photo-gallery/api/presenter/handler"
 	"github.com/alancesar/photo-gallery/api/usecase"
 	"github.com/gin-contrib/cors"
@@ -27,7 +28,8 @@ import (
 const (
 	projectIDKey           = "PROJECT_ID"
 	storageEmulatorHostKey = "STORAGE_EMULATOR_HOST"
-	thumbsSubscriptionID   = "thumbs"
+	photosTopicID          = "photos"
+	thumbsSubscriptionID   = "api_thumbs"
 )
 
 func main() {
@@ -49,12 +51,15 @@ func main() {
 		log.Fatalln(err)
 	}
 
+	photosTopic := pubsubClient.Topic(photosTopicID)
 	thumbsSubscription := pubsubClient.Subscription(thumbsSubscriptionID)
 	bucketHandle := storageClient.Bucket(fmt.Sprintf("%s.appspot.com", projectID))
 
 	db := database.NewFirestoreDatabase(firestoreClient)
 	b := buildBucket(bucketHandle)
-	uploadUseCase := usecase.NewUpload(db, b)
+	p := publisher.New[photo.Photo](photosTopic)
+
+	uploadUseCase := usecase.NewUpload(db, b, p)
 	getAllUseCase := usecase.NewGetAll(db)
 	getUseCase := usecase.NewGet(db)
 
@@ -62,9 +67,9 @@ func main() {
 	signal.Notify(signals, os.Interrupt)
 
 	go func() {
-		l := listener.New[[]photo.Thumbs](thumbsSubscription)
-		if err := l.Listen(ctx, func(ctx context.Context, id string, thumbs []photo.Thumbs) error {
-			return db.InsertThumbnails(ctx, id, thumbs)
+		l := listener.New[photo.Photo](thumbsSubscription)
+		if err := l.Listen(ctx, func(ctx context.Context, p photo.Photo) error {
+			return db.InsertThumbnails(ctx, p.ID, p.Thumbs)
 		}); err != nil {
 			log.Fatalln(err)
 		}

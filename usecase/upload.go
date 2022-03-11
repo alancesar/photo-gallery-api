@@ -17,13 +17,15 @@ type (
 	Upload struct {
 		db Database
 		b  Bucket
+		p  Publisher
 	}
 )
 
-func NewUpload(database Database, bucket Bucket) *Upload {
+func NewUpload(database Database, bucket Bucket, publisher Publisher) *Upload {
 	return &Upload{
 		db: database,
 		b:  bucket,
+		p:  publisher,
 	}
 }
 
@@ -51,6 +53,7 @@ func (u Upload) Execute(ctx context.Context, reader io.ReadSeeker, extension str
 		return photo.Photo{}, err
 	}
 
+	u.p.Publish(ctx, p)
 	return p, nil
 }
 

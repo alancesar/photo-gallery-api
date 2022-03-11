@@ -6,15 +6,15 @@ import (
 
 type (
 	Thumbs struct {
-		Filename string `json:"filename"`
+		Filename string `json:"filename" firestore:"filename"`
 		metadata.Metadata
 	}
 
 	Photo struct {
-		ID       string         `json:"id"`
-		Filename string         `json:"filename"`
-		Thumbs   []Thumbs       `json:"thumbs,omitempty"`
-		Exif     *metadata.Exif `json:"exif,omitempty"`
+		ID       string         `json:"id" firestore:"-"`
+		Filename string         `json:"filename" firestore:"filename"`
+		Thumbs   []Thumbs       `json:"thumbs,omitempty" firestore:"thumbs,omitempty"`
+		Exif     *metadata.Exif `json:"exif,omitempty" firestore:"exif,omitempty"`
 		metadata.Metadata
 	}
 )

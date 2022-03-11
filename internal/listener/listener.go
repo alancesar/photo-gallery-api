@@ -8,7 +8,7 @@ import (
 )
 
 type (
-	Consumer[T any] func(ctx context.Context, id string, data T) error
+	Consumer[T any] func(ctx context.Context, data T) error
 
 	Listener[T any] struct {
 		subscription *pubsub.Subscription
@@ -32,7 +32,7 @@ func (l Listener[T]) Listen(ctx context.Context, consumer Consumer[T]) error {
 			return
 		}
 
-		if err := consumer(ctx, message.Attributes["id"], data); err != nil {
+		if err := consumer(ctx, data); err != nil {
 			message.Nack()
 			return
 		}

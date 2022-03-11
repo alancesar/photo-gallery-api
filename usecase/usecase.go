@@ -17,4 +17,8 @@ type (
 	Bucket interface {
 		Put(ctx context.Context, file io.ReadSeeker, filename string) (metadata.Metadata, error)
 	}
+
+	Publisher interface {
+		Publish(ctx context.Context, photo photo.Photo)
+	}
 )
