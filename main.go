@@ -9,7 +9,6 @@ import (
 	"github.com/alancesar/photo-gallery/api/domain/photo"
 	"github.com/alancesar/photo-gallery/api/internal/bucket"
 	"github.com/alancesar/photo-gallery/api/internal/database"
-	"github.com/alancesar/photo-gallery/api/internal/listener"
 	"github.com/alancesar/photo-gallery/api/internal/publisher"
 	"github.com/alancesar/photo-gallery/api/presenter/handler"
 	"github.com/alancesar/photo-gallery/api/usecase"
@@ -29,7 +28,6 @@ const (
 	projectIDKey           = "PROJECT_ID"
 	storageEmulatorHostKey = "STORAGE_EMULATOR_HOST"
 	photosTopicID          = "photos"
-	apiSubscriptionID      = "api"
 )
 
 func main() {
@@ -52,7 +50,6 @@ func main() {
 	}
 
 	photosTopic := pubsubClient.Topic(photosTopicID)
-	thumbsSubscription := pubsubClient.Subscription(apiSubscriptionID)
 	bucketHandle := storageClient.Bucket(fmt.Sprintf("%s.appspot.com", projectID))
 
 	db := database.NewFirestoreDatabase(firestoreClient)
@@ -67,21 +64,12 @@ func main() {
 	signal.Notify(signals, os.Interrupt)
 
 	go func() {
-		l := listener.New[photo.Photo](thumbsSubscription)
-		if err := l.Listen(ctx, func(ctx context.Context, p photo.Photo) error {
-			return db.InsertThumbnails(ctx, p.ID, p.Thumbs)
-		}); err != nil {
-			log.Fatalln(err)
-		}
-	}()
-
-	go func() {
 		engine := gin.Default()
 		engine.Use(cors.Default())
 		engine.Handle(http.MethodPost, "/api/photos", handler.UploadFileHandler(uploadUseCase))
 		engine.Handle(http.MethodGet, "/api/photos", handler.ListPhotosHandler(getAllUseCase))
 		engine.Handle(http.MethodGet, "/api/photo/:id", handler.GetPhotoHandler(getUseCase))
-		if err := engine.Run(":8080"); err != nil {
+		if err := engine.Run(":8081"); err != nil {
 			log.Fatalln(err)
 		}
 	}()

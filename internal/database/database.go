@@ -3,20 +3,12 @@ package database
 import (
 	"cloud.google.com/go/firestore"
 	"context"
-	"github.com/alancesar/photo-gallery/api/domain/metadata"
 	"github.com/alancesar/photo-gallery/api/domain/photo"
-	"go.mongodb.org/mongo-driver/mongo"
 )
 
 const (
 	photosCollectionName = "photos"
-	metadataFieldName    = "metadata"
-	thumbsFieldName      = "thumbs"
 )
-
-type Database struct {
-	collection *mongo.Collection
-}
 
 type (
 	FirestoreDatabase struct {
@@ -73,29 +65,4 @@ func (d FirestoreDatabase) Create(ctx context.Context, photo *photo.Photo) error
 
 	photo.ID = ref.ID
 	return nil
-}
-
-func (d FirestoreDatabase) UpdateMetadata(ctx context.Context, id string, metadata metadata.Metadata) error {
-	_, err := d.client.Collection(photosCollectionName).Doc(id).Update(ctx, []firestore.Update{
-		{
-			Path:  metadataFieldName,
-			Value: metadata,
-		},
-	})
-
-	return err
-}
-
-func (d FirestoreDatabase) InsertThumbnails(ctx context.Context, id string, thumbs []photo.Thumbs) error {
-	_, err := d.client.
-		Collection(photosCollectionName).
-		Doc(id).
-		Update(ctx, []firestore.Update{
-			{
-				Path:  thumbsFieldName,
-				Value: thumbs,
-			},
-		})
-
-	return err
 }
