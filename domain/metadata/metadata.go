@@ -1,8 +1,6 @@
 package metadata
 
 type (
-	Exif map[string]map[string]string
-
 	Dimension struct {
 		Width  int `json:"width" firestore:"width"`
 		Height int `json:"height" firestore:"height"`
@@ -14,4 +12,6 @@ type (
 		MD5         string     `json:"md5,omitempty" firestore:"md5,omitempty"`
 		Dimension   *Dimension `json:"dimension,omitempty" firestore:"dimension"`
 	}
+
+	Exif map[string]interface{}
 )
